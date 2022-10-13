@@ -30,7 +30,7 @@ func NewServer(ip string, port int) (*Server) {
 		Ip: ip,
 		Port: port,
 		OnlineMap: make(map[string]*users.User),
-		Message:make(chan string),
+		Message: make(chan string),
 	}
 
 	fmt.Printf("ip is %s, port is %d", ip, port)
@@ -46,14 +46,11 @@ func (this *Server) ListenMsg() {
 			cli.C <- msg
 		}
 		this.mapLock.Unlock();
-
-		fmt.Println("send success")
 	}
 }
 
 func(this *Server) Broadcast(user *users.User, msg string) {
 	sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
-
 	this.Message <- sendMsg
 }
 
@@ -72,7 +69,6 @@ func (this *Server) Handler(conn net.Conn) {
 	// broadcast user online event
 	this.Broadcast(user, "is online")
 
-	fmt.Println("Broadcast success")
 	// temp block
 	select {}
 }

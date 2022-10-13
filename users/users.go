@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"net"
 )
 
@@ -23,6 +22,8 @@ func NewUser(conn net.Conn) *User {
 		conn: conn,
 	}
 
+	go user.ListenMsg()
+
 	return user
 }
 
@@ -30,7 +31,6 @@ func NewUser(conn net.Conn) *User {
 func (this *User) ListenMsg() {
 	for{
 		msg := <-this.C
-		fmt.Println("msg success is ", msg)
 		this.conn.Write([]byte(msg+"\n"))
 	}
 }
