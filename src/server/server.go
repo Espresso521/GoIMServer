@@ -1,4 +1,3 @@
-// $GOPATH/src/foo/bar/baz/hello.go
 package server
 
 import (
