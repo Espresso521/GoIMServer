@@ -1,3 +1,3 @@
-module huze.com/m
+module huze.com/example
 
 go 1.19
