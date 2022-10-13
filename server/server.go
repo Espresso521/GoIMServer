@@ -5,8 +5,6 @@ import (
 	"io"
 	"net"
 	"sync"
-
-	"example.com/m/users"
 )
 
 // 模块初始化函数 import 包时被调用
@@ -19,7 +17,7 @@ type Server struct {
 	Port int
 
 	// onlineMap
-	OnlineMap  map[string]*users.User
+	OnlineMap  map[string]*User
 	mapLock sync.RWMutex
 
 	// broadcast channel
@@ -30,7 +28,7 @@ func NewServer(ip string, port int) (*Server) {
 	server := &Server{
 		Ip: ip,
 		Port: port,
-		OnlineMap: make(map[string]*users.User),
+		OnlineMap: make(map[string]*User),
 		Message: make(chan string),
 	}
 
@@ -50,7 +48,7 @@ func (this *Server) ListenMsg() {
 	}
 }
 
-func(this *Server) Broadcast(user *users.User, msg string) {
+func(this *Server) Broadcast(user *User, msg string) {
 	sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
 	this.Message <- sendMsg
 }
@@ -59,16 +57,11 @@ func (this *Server) Handler(conn net.Conn) {
 	// current connect work
 	fmt.Println("connect success")
 
-	user := users.NewUser(conn)
+	user := NewUser(conn, this)
 
 	fmt.Println("user name is ", user.Name)
 	// user online
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock();
-
-	// broadcast user online event
-	this.Broadcast(user, "is online")
+	user.Online()
 
 	// receive user's send msg
 	go func ()  {
@@ -76,7 +69,7 @@ func (this *Server) Handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(buf)
 			if n==0 {
-				this.Broadcast(user, "off line")
+				user.Offline()
 				return
 			}
 
@@ -86,7 +79,7 @@ func (this *Server) Handler(conn net.Conn) {
 			}
 
 			msg := string(buf[:n-1])
-			this.Broadcast(user, msg)
+			user.OnMessage(msg)
 		}
 	}()
 
