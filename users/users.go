@@ -22,6 +22,7 @@ func NewUser(conn net.Conn) *User {
 		conn: conn,
 	}
 
+	// goroutine for user to listen msg
 	go user.ListenMsg()
 
 	return user
