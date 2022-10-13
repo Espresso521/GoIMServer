@@ -14,6 +14,11 @@ func init() {
 type Server struct {
 	Ip string
 	Port int
+
+	// onlineMap
+	OnlineMap map[string]*User
+
+
 }
 
 func NewServer(ip string, port int) (*Server) {
