@@ -1,6 +1,9 @@
 package users
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 type User struct {
 	Name string
@@ -27,7 +30,7 @@ func NewUser(conn net.Conn) *User {
 func (this *User) ListenMsg() {
 	for{
 		msg := <-this.C
-
+		fmt.Println("msg success is ", msg)
 		this.conn.Write([]byte(msg+"\n"))
 	}
 }

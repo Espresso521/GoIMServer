@@ -46,6 +46,8 @@ func (this *Server) ListenMsg() {
 			cli.C <- msg
 		}
 		this.mapLock.Unlock();
+
+		fmt.Println("send success")
 	}
 }
 
@@ -70,6 +72,7 @@ func (this *Server) Handler(conn net.Conn) {
 	// broadcast user online event
 	this.Broadcast(user, "is online")
 
+	fmt.Println("Broadcast success")
 	// temp block
 	select {}
 }
