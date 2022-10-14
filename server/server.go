@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 // 模块初始化函数 import 包时被调用
@@ -63,6 +64,8 @@ func (this *Server) Handler(conn net.Conn) {
 	// user online
 	user.Online()
 
+	isLive := make(chan bool)
+
 	// receive user's send msg
 	go func ()  {
 		buf := make([]byte, 4096)
@@ -70,18 +73,38 @@ func (this *Server) Handler(conn net.Conn) {
 			n, err := conn.Read(buf)
 			if n==0 {
 				user.Offline()
+				//这样的写法会造成服务端出现大量CLOSE_WAIT，return也只是退出当前协程，而不是Handle
 				return
 			}
 
+			//读到末尾的时候err是io.EOF
 			if err != nil && err != io.EOF {
 				fmt.Println("Conn Read err:", err)
 				return
 			}
 
+			//去除最后的'\n'并转为字符串
 			msg := string(buf[:n-1])
 			user.OnMessage(msg)
+
+			isLive <- true
 		}
 	}()
+
+	// 空select会一直阻塞
+	for {
+		select {
+		case <-isLive:
+		//当前用户是活跃的,不做任何事情，select中会执行下面这句重置
+    //time.After(time.Second * 10)重新执行即刻重置定时器，定时到后会发送信息
+    //这里select 第二个case定时器触发后，处于阻塞状态。当满足第一个 case 的条件后，
+    //打破了 select 的阻塞状态，每个条件又开始判断，第2个 case 的判断条件一执行，就重置定时器了。
+		case <-time.After(time.Second*10):
+			user.Kicked()
+
+			return // runtime.Goexit()
+		}
+	}
 
 }
 
