@@ -48,14 +48,34 @@ func (this *User) Offline() {
 		this.server.Broadcast(this, "OFF line!")
 }
 
+func (this *User) Kicked() {
+	this.SendMsg(this.Name + " are kicked out.")
+	close(this.C)
+	this.conn.Close()
+}
+
+func (this *User) SendMsg(msg string) {
+	this.conn.Write([]byte(msg))
+}
+
 func (this *User) OnMessage(msg string) {
 	this.server.Broadcast(this, msg)
 }
 
 // listen channel
-func (this *User) ListenMsg() {
-	for{
-		msg := <-this.C
-		this.conn.Write([]byte(msg+"\n"))
+func (u *User) ListenMsg() {
+  //当u.C通道关闭后，不再进行监听并写入信息
+	for msg := range u.C {
+			_, err := u.conn.Write([]byte(msg + "\n"))
+			if err != nil {
+				panic(err)
+			}
 	}
+	
+	//不监听后关闭conn，conn在这里关闭最合适
+	err := u.conn.Close()
+	if err != nil {
+			panic(err)
+	}
+
 }
