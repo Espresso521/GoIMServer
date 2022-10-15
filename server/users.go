@@ -2,6 +2,8 @@ package server
 
 import (
 	"net"
+	"strings"
+	"sync"
 )
 
 type User struct {
@@ -10,15 +12,17 @@ type User struct {
 	C chan string
 	conn net.Conn
 	server *Server
+	once sync.Once
 }
 
 // create a user
 func NewUser(conn net.Conn, server *Server) *User {
-	userAddr:=conn.RemoteAddr().String()
+
+	userName:= strings.Split(conn.RemoteAddr().String(),":")[1] 
 
 	user:=&User{
-		Name: userAddr,
-		Addr: userAddr,
+		Name: userName,
+		Addr: conn.RemoteAddr().String(),
 		C: make(chan string),
 		conn: conn,
 		server: server,
@@ -30,28 +34,16 @@ func NewUser(conn net.Conn, server *Server) *User {
 	return user
 }
 
-func (this *User) Online() {
-	// user online
-	this.server.mapLock.Lock()
-	this.server.OnlineMap[this.Name] = this
-	this.server.mapLock.Unlock();
-
-	this.server.Broadcast(this, "ON line!")
+func (this *User) SafeClose() {
+	this.once.Do(func() {
+		close(this.C)
+		this.conn.Close()
+	})
 }
 
 func (this *User) Offline() {
-		// user online
-		this.server.mapLock.Lock()
-		delete(this.server.OnlineMap, this.Name)
-		this.server.mapLock.Unlock();
-	
-		this.server.Broadcast(this, "OFF line!")
-}
-
-func (this *User) Kicked() {
-	this.SendMsg(this.Name + " are kicked out.")
-	close(this.C)
-	this.conn.Close()
+		// refer to https://go101.org/article/channel-closing.html
+		this.SafeClose()
 }
 
 func (this *User) SendMsg(msg string) {
@@ -63,19 +55,12 @@ func (this *User) OnMessage(msg string) {
 }
 
 // listen channel
-func (u *User) ListenMsg() {
+func (this *User) ListenMsg() {
   //当u.C通道关闭后，不再进行监听并写入信息
-	for msg := range u.C {
-			_, err := u.conn.Write([]byte(msg + "\n"))
+	for msg := range this.C {
+			_, err := this.conn.Write([]byte(msg + "\n"))
 			if err != nil {
 				panic(err)
 			}
 	}
-	
-	//不监听后关闭conn，conn在这里关闭最合适
-	err := u.conn.Close()
-	if err != nil {
-			panic(err)
-	}
-
 }

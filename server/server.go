@@ -23,6 +23,7 @@ type Server struct {
 
 	// broadcast channel
 	Message chan string
+	UserStatus chan string
 }
 
 func NewServer(ip string, port int) (*Server) {
@@ -31,6 +32,7 @@ func NewServer(ip string, port int) (*Server) {
 		Port: port,
 		OnlineMap: make(map[string]*User),
 		Message: make(chan string),
+		UserStatus: make(chan string),
 	}
 
 	fmt.Printf("ip is %s, port is %d", ip, port)
@@ -54,15 +56,31 @@ func(this *Server) Broadcast(user *User, msg string) {
 	this.Message <- sendMsg
 }
 
+func(this *Server) AddUser(user *User) {
+	this.mapLock.Lock()
+	this.OnlineMap[user.Name] = user
+	this.mapLock.Unlock();
+	this.Broadcast(user, " ON line!!!")
+}
+
+func(this *Server) DelUser(user *User) {
+	this.mapLock.Lock()
+	delete(this.OnlineMap, user.Name)
+	this.mapLock.Unlock()
+	this.Broadcast(user, " OFF line!!!")
+	user.Offline()
+}
+
 func (this *Server) Handler(conn net.Conn) {
 	// current connect work
 	fmt.Println("connect success")
 
 	user := NewUser(conn, this)
 
-	fmt.Println("user name is ", user.Name)
+	fmt.Println("user name is ", user.Name, " connect success")
+
 	// user online
-	user.Online()
+	this.AddUser(user)
 
 	isLive := make(chan bool)
 
@@ -82,7 +100,7 @@ func (this *Server) Handler(conn net.Conn) {
 				fmt.Println("Conn Read err:", err)
 				return
 			}
-
+			
 			//去除最后的'\n'并转为字符串
 			msg := string(buf[:n-1])
 			user.OnMessage(msg)
@@ -100,7 +118,7 @@ func (this *Server) Handler(conn net.Conn) {
     //这里select 第二个case定时器触发后，处于阻塞状态。当满足第一个 case 的条件后，
     //打破了 select 的阻塞状态，每个条件又开始判断，第2个 case 的判断条件一执行，就重置定时器了。
 		case <-time.After(time.Second*10):
-			user.Kicked()
+			this.DelUser(user)
 
 			return // runtime.Goexit()
 		}
