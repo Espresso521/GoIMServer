@@ -51,7 +51,7 @@ func (this *User) SendMsg(msg string) {
 }
 
 func (this *User) OnMessage(msg string) {
-	this.server.Broadcast(this, msg)
+	this.server.DispathMsg(this, msg)
 }
 
 // listen channel

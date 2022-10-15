@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -22,8 +23,14 @@ type Server struct {
 	mapLock sync.RWMutex
 
 	// broadcast channel
-	Message chan string
+	Message chan []byte
 	UserStatus chan string
+}
+
+// 定义结构体
+type DispatchMsg struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
 func NewServer(ip string, port int) (*Server) {
@@ -31,7 +38,7 @@ func NewServer(ip string, port int) (*Server) {
 		Ip: ip,
 		Port: port,
 		OnlineMap: make(map[string]*User),
-		Message: make(chan string),
+		Message: make(chan []byte),
 		UserStatus: make(chan string),
 	}
 
@@ -42,6 +49,27 @@ func NewServer(ip string, port int) (*Server) {
 func (this *Server) ListenMsg() {
 	for {
 		msg := <-this.Message
+		dmsg := DispatchMsg {}
+		err := json.Unmarshal(msg, &dmsg)
+
+		if err != nil {
+			fmt.Println("err is " + err.Error())
+			continue
+		}
+
+		this.mapLock.Lock()
+		for _, cli := range this.OnlineMap {
+			if cli.Name != dmsg.Name {
+				cli.C <- dmsg.Content
+			}
+		}
+		this.mapLock.Unlock();
+	}
+}
+
+func (this *Server) ListenStatus() {
+	for {
+		msg := <-this.UserStatus
 
 		this.mapLock.Lock()
 		for _, cli := range this.OnlineMap {
@@ -51,23 +79,39 @@ func (this *Server) ListenMsg() {
 	}
 }
 
-func(this *Server) Broadcast(user *User, msg string) {
-	sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
-	this.Message <- sendMsg
+func(this *Server) BroadcastStatus(user *User, msg string) {
+	sendMsg := "[" + user.Name  + "]" + ":" + msg
+	this.UserStatus <- sendMsg
+}
+
+func(this *Server) DispathMsg(user *User, msg string) {
+	sendMsg := "[" + user.Name + "]" + ":" + msg
+  // 序列化
+	buf, err := json.Marshal(DispatchMsg{
+		Name:user.Name,
+		Content: sendMsg,
+	})
+
+	if err != nil {
+		fmt.Println("err is " + err.Error())
+		return
+	}
+	
+	this.Message <- buf
 }
 
 func(this *Server) AddUser(user *User) {
 	this.mapLock.Lock()
 	this.OnlineMap[user.Name] = user
 	this.mapLock.Unlock();
-	this.Broadcast(user, " ON line!!!")
+	this.BroadcastStatus(user, " ON line!!!")
 }
 
 func(this *Server) DelUser(user *User) {
 	this.mapLock.Lock()
 	delete(this.OnlineMap, user.Name)
 	this.mapLock.Unlock()
-	this.Broadcast(user, " OFF line!!!")
+	this.BroadcastStatus(user, " OFF line!!!")
 	user.Offline()
 }
 
@@ -103,6 +147,8 @@ func (this *Server) Handler(conn net.Conn) {
 			
 			//去除最后的'\n'并转为字符串
 			msg := string(buf[:n-1])
+
+
 			user.OnMessage(msg)
 
 			isLive <- true
@@ -117,7 +163,7 @@ func (this *Server) Handler(conn net.Conn) {
     //time.After(time.Second * 10)重新执行即刻重置定时器，定时到后会发送信息
     //这里select 第二个case定时器触发后，处于阻塞状态。当满足第一个 case 的条件后，
     //打破了 select 的阻塞状态，每个条件又开始判断，第2个 case 的判断条件一执行，就重置定时器了。
-		case <-time.After(time.Second*10):
+		case <-time.After(time.Second*120):
 			this.DelUser(user)
 
 			return // runtime.Goexit()
@@ -139,9 +185,12 @@ func (this *Server) Start() {
 
 	//close listen socket
 	defer listener.Close()
+	defer listener.Close()
 
 	//start listener msg
 	go this.ListenMsg()
+
+	go this.ListenStatus()
 
 	for {
 		conn, err := listener.Accept()
