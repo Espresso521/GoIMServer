@@ -8,6 +8,6 @@ import (
 
 func main() {
 	fmt.Println("Start")
-	ser := server.NewServer("127.0.0.1", 8888)
+	ser := server.NewServer("0.0.0.0", 5210)
 	ser.Start()
 }

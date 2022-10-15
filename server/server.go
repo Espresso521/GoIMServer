@@ -96,7 +96,7 @@ func(this *Server) DispathMsg(user *User, msg string) {
 		fmt.Println("err is " + err.Error())
 		return
 	}
-	
+
 	this.Message <- buf
 }
 
@@ -134,7 +134,7 @@ func (this *Server) Handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(buf)
 			if n==0 {
-				user.Offline()
+				this.DelUser(user)
 				//这样的写法会造成服务端出现大量CLOSE_WAIT，return也只是退出当前协程，而不是Handle
 				return
 			}
@@ -184,7 +184,6 @@ func (this *Server) Start() {
 	}
 
 	//close listen socket
-	defer listener.Close()
 	defer listener.Close()
 
 	//start listener msg
