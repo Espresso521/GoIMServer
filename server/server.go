@@ -42,7 +42,6 @@ func NewServer(ip string, port int) (*Server) {
 		UserStatus: make(chan string),
 	}
 
-	fmt.Printf("ip is %s, port is %d", ip, port)
 	return server
 }
 
