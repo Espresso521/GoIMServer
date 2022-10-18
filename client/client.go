@@ -24,7 +24,7 @@ func NewClient(serverIp string, serverPort int) *Client {
 		flag:       9999,
 	}
 	// 连接server
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", serverIp, serverPort))
+	conn, err := net.Dial("tcp", fmt.Sprint(serverIp,":",serverPort))
 	if err != nil {
 		fmt.Println("net.Dial error:", err)
 		return nil

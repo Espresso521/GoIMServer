@@ -11,12 +11,12 @@ type User struct {
 	Addr string
 	C chan string
 	conn net.Conn
-	server *Server
+	server *IMServer
 	once sync.Once
 }
 
 // create a user
-func NewUser(conn net.Conn, server *Server) *User {
+func NewUser(conn net.Conn, server *IMServer) *User {
 
 	userName:= strings.Split(conn.RemoteAddr().String(),":")[1] 
 
