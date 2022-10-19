@@ -31,7 +31,7 @@ func main() {
 	})
 
 	log.Println("Server start")
-	err := http.ListenAndServe("0.0.0.0:5211", nil)
+	err := http.ListenAndServe("172.31.7.210:5211", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
