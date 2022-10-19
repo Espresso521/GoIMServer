@@ -31,8 +31,8 @@ func main() {
 	})
 
 	log.Println("Server start")
-	err := http.ListenAndServe("172.31.7.210:5211", nil)
+	err := http.ListenAndServeTLS(":443", "server.crt", "server.pem", nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatal("ListenAndServeTLS: ", err)
 	}
 }
