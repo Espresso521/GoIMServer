@@ -5,12 +5,9 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 )
-
-var addr = flag.String("addr", ":5210", "http service address")
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
