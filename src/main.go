@@ -29,6 +29,8 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
+
+	log.Println("Server start")
 	err := http.ListenAndServe("0.0.0.0:5211", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
