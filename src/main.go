@@ -31,7 +31,7 @@ func main() {
 	})
 
 	log.Println("Server start")
-	err := http.ListenAndServeTLS("0.0.0.0:5211", "localhost.crt", "localhost.key", nil)
+	err := http.ListenAndServeTLS("0.0.0.0:5211", "cert.cer", "private.key", nil)
 	//err := http.ListenAndServe("0.0.0.0:5211", nil)
 	if err != nil {
 		log.Fatal("ListenAndServeTLS: ", err)
