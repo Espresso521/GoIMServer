@@ -44,7 +44,7 @@ func ReceiveFile(w http.ResponseWriter, r *http.Request) {
 	fStat, _ := f.Stat()
 
 	// return a success message to the client
-	fmt.Fprintf(w, "File uploaded successfully: file name is %v, file size is %v", f.Name(), fStat.Size())
+	fmt.Fprintf(w, "File uploaded successfully: file name is %v, file size is %v bytes", f.Name(), fStat.Size())
 }
 
 type Person struct {
@@ -147,9 +147,8 @@ func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	for key, values := range r.Form {
 		log.Printf("Form field %q, Values %q\n", key, values)
-
 		log.Printf("Form field %q, Value %q\n", key, r.FormValue(key))
-}
+ }
 
 	for key, values := range r.Form {
 			fmt.Fprintf(w, "Form field %q, Values %q\n", key, values)
