@@ -5,13 +5,12 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -19,20 +18,33 @@ import (
 
 func ReceiveFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(32 << 20) 
-	var buf bytes.Buffer
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
 			panic(err)
 	}
 	defer file.Close()
-	name := strings.Split(header.Filename, ".")
-	fmt.Printf("File name %s\n", name[0])
+	fmt.Printf("File name %s\n", header.Filename)
 
-	io.Copy(&buf, file)
-	contents := buf.Len()
-	fmt.Printf("contents length is %d \n", contents)
-	buf.Reset()
+	// create a new file in the local file system
+	f, err := os.OpenFile("./uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+	}
+	defer f.Close()
+
+	// copy the uploaded file data to the new file
+	_, err = io.Copy(f, file)
+	if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+	}
+
+	fStat, _ := f.Stat()
+
+	// return a success message to the client
+	fmt.Fprintf(w, "File uploaded successfully: file name is %v, file size is %v", f.Name(), fStat.Size())
 }
 
 type Person struct {
