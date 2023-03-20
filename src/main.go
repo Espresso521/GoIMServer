@@ -5,14 +5,35 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 )
+
+func ReceiveFile(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(32 << 20) 
+	var buf bytes.Buffer
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+			panic(err)
+	}
+	defer file.Close()
+	name := strings.Split(header.Filename, ".")
+	fmt.Printf("File name %s\n", name[0])
+
+	io.Copy(&buf, file)
+	contents := buf.Len()
+	fmt.Printf("contents length is %d \n", contents)
+	buf.Reset()
+}
 
 type Person struct {
 	Name string
@@ -166,6 +187,7 @@ func main() {
 
 	router.HandleFunc("/display_form_data", Chain(DisplayFormDataHandler, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/parse_json_request", Chain(DisplayPersonHandler, Method("POST"), Logging())).Methods("POST")
+	router.HandleFunc("/upload_file", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
