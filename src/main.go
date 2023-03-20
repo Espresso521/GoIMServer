@@ -5,11 +5,33 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func DisplayPersonHandler(w http.ResponseWriter, r *http.Request) {
+	var p Person
+
+	// 将请求体中的 JSON 数据解析到结构体中
+	// 发生错误，返回400 错误码
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+	}
+
+	fmt.Fprintf(w, "Person: %+v", p)
+}
 
 type Middleware func(http.HandlerFunc) http.HandlerFunc
 
@@ -23,10 +45,12 @@ func Logging() Middleware {
         return func(w http.ResponseWriter, r *http.Request) {
 
             // 中间件的处理逻辑
-						log.Println("Logging: " + r.URL.Path) 
+						log.Println("Logging Start: " + r.URL.Path) 
  
             // 调用下一个中间件或者最终的handler处理程序
             f(w, r)
+
+						log.Println("Logging End: " + r.URL.Path) 
         }
     }
 }
@@ -81,7 +105,24 @@ func serveTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.ServeFile(w, r, "test.html")
-	log.Println(r.URL.Path + " END") 
+}
+
+func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+			panic(err)
+	}
+
+	for key, values := range r.Form {
+		log.Printf("Form field %q, Values %q\n", key, values)
+
+		log.Printf("Form field %q, Value %q\n", key, r.FormValue(key))
+}
+
+	for key, values := range r.Form {
+			fmt.Fprintf(w, "Form field %q, Values %q\n", key, values)
+
+			fmt.Fprintf(w, "Form field %q, Value %q\n", key, r.FormValue(key))
+	}
 }
 
 func appStartTime(w http.ResponseWriter, r *http.Request) {
@@ -94,8 +135,21 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "test.html")
-	log.Println(r.URL.Path + " END") 
+
+	for key,value:= range r.Header{
+			log.Printf("%s=>%s\n",key,value)
+	}
+
+	for k, v := range r.URL.Query() {
+		log.Printf("ParamName %q, Value %q\n", k, v)
+		log.Printf("ParamName %q, Get Value %q\n", k, r.URL.Query().Get(k))
+	}
+
+	// http.ServeFile(w, r, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
+	// w.Write("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
+
+	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
+	fmt.Fprintf(w, "{'time':'%s'}", time.Now())
 }
 
 func main() {
@@ -109,6 +163,9 @@ func main() {
 	router.HandleFunc("/test", Chain(serveTest, Method("GET"), Logging())).Methods("GET")
 	// /api/v/1.0/app/start
 	router.HandleFunc("/api/v/1.0/app/start", Chain(appStartTime, Method("POST"), Logging())).Methods("POST")
+
+	router.HandleFunc("/display_form_data", Chain(DisplayFormDataHandler, Method("POST"), Logging())).Methods("POST")
+	router.HandleFunc("/parse_json_request", Chain(DisplayPersonHandler, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
