@@ -48,7 +48,7 @@ func ReceiveFile(w http.ResponseWriter, r *http.Request) {
 	fStat, _ := f.Stat()
 
 	// return a success message to the client
-	fmt.Fprintf(w, "File uploaded successfully: file name is %v, file size is %v bytes", f.Name(), fStat.Size())
+	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s', 'extra':'File uploaded successfully: file name is %v, file size is %v bytes'}", time.Now(), f.Name(), fStat.Size())
 }
 
 type Person struct {
