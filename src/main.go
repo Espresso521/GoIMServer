@@ -19,12 +19,16 @@ import (
 func ReceiveFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(32 << 20) 
 
-	file, header, err := r.FormFile("file")
+	file, header, err := r.FormFile("image")
 	if err != nil {
 			panic(err)
 	}
 	defer file.Close()
 	fmt.Printf("File name %s\n", header.Filename)
+
+	for key, values := range r.Form {
+		log.Printf("Form field %q, Values %q\n", key, values)
+ }
 
 	// create a new file in the local file system
 	f, err := os.OpenFile("./uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
@@ -216,6 +220,7 @@ func main() {
 	router.HandleFunc("/parse_json_request", Chain(DisplayPersonHandler, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/upload_file", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/auth/token/login/", Chain(authLogin, Method("POST"), Logging())).Methods("POST")
+	router.HandleFunc("/api/v/1.0/run/start/", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
 	
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
