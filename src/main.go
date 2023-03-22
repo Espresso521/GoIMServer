@@ -180,8 +180,7 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 	// http.ServeFile(w, r, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
 	// w.Write("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
 
-	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
-	fmt.Fprintf(w, "{'time':'%s'}", time.Now())
+	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
 
 func main() {
