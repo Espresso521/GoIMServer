@@ -159,7 +159,7 @@ func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
 
 func appStartTime(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
-	if r.URL.Path != "/api/v/1.0/app/start" {
+	if r.URL.Path != "/api/v/1.0/app/start/" {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
@@ -183,6 +183,23 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
 
+func authLogin(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	if r.URL.Path != "/auth/token/login/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// http.ServeFile(w, r, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
+	// w.Write("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
+
+	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
+}
+
 func main() {
 	hub := newHub()
 	go hub.run()
@@ -193,11 +210,13 @@ func main() {
 	router.HandleFunc("/", serveHome)
 	router.HandleFunc("/test", Chain(serveTest, Method("GET"), Logging())).Methods("GET")
 	// /api/v/1.0/app/start
-	router.HandleFunc("/api/v/1.0/app/start", Chain(appStartTime, Method("POST"), Logging())).Methods("POST")
+	router.HandleFunc("/api/v/1.0/app/start/", Chain(appStartTime, Method("POST"), Logging())).Methods("POST")
 
 	router.HandleFunc("/display_form_data", Chain(DisplayFormDataHandler, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/parse_json_request", Chain(DisplayPersonHandler, Method("POST"), Logging())).Methods("POST")
 	router.HandleFunc("/upload_file", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
+	router.HandleFunc("/auth/token/login/", Chain(authLogin, Method("POST"), Logging())).Methods("POST")
+	
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
