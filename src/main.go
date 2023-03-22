@@ -70,62 +70,10 @@ func DisplayPersonHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Person: %+v", p)
 }
 
-type Middleware func(http.HandlerFunc) http.HandlerFunc
-
-// 记录每个URL请求的执行时长
-func Logging() Middleware {
-
-    // 创建中间件
-    return func(f http.HandlerFunc) http.HandlerFunc {
-
-        // 创建一个新的handler包装http.HandlerFunc
-        return func(w http.ResponseWriter, r *http.Request) {
-
-            // 中间件的处理逻辑
-						log.Println("Logging Start: " + r.URL.Path) 
- 
-            // 调用下一个中间件或者最终的handler处理程序
-            f(w, r)
-
-						log.Println("Logging End: " + r.URL.Path) 
-        }
-    }
-}
-
-// 验证请求用的是否是指定的HTTP Method，不是则返回 400 Bad Request
-func Method(m string) Middleware {
-
-	return func(f http.HandlerFunc) http.HandlerFunc {
-
-			return func(w http.ResponseWriter, r *http.Request) {
-
-					if r.Method != m {
-							http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-							return
-					}
-
-					f(w, r)
-			}
-	}
-}
-
-// 把应用到http.HandlerFunc处理器的中间件
-// 按照先后顺序和处理器本身链起来供http.HandleFunc调用
-func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
-	for _, m := range middlewares {
-			f = m(f)
-	}
-	return f
-}
-
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
 	if r.URL.Path != "/" {
 		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	http.ServeFile(w, r, "home.html")
@@ -137,10 +85,7 @@ func serveTest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+
 	http.ServeFile(w, r, "test.html")
 }
 
@@ -167,10 +112,6 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	for key,value:= range r.Header{
 			log.Printf("%s=>%s\n",key,value)
@@ -181,9 +122,6 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ParamName %q, Get Value %q\n", k, r.URL.Query().Get(k))
 	}
 
-	// http.ServeFile(w, r, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
-	// w.Write("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
-
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
 
@@ -193,13 +131,6 @@ func authLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// http.ServeFile(w, r, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
-	// w.Write("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae'}")
 
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
@@ -208,26 +139,23 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
-	router := mux.NewRouter()
-
 	// regist router
-	router.HandleFunc("/", serveHome)
-	router.HandleFunc("/test", Chain(serveTest, Method("GET"), Logging())).Methods("GET")
-	// /api/v/1.0/app/start
-	router.HandleFunc("/api/v/1.0/app/start/", Chain(appStartTime, Method("POST"), Logging())).Methods("POST")
+	myrouter := MyRouter{mux.NewRouter()}
 
-	router.HandleFunc("/display_form_data", Chain(DisplayFormDataHandler, Method("POST"), Logging())).Methods("POST")
-	router.HandleFunc("/parse_json_request", Chain(DisplayPersonHandler, Method("POST"), Logging())).Methods("POST")
-	router.HandleFunc("/upload_file", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
-	router.HandleFunc("/auth/token/login/", Chain(authLogin, Method("POST"), Logging())).Methods("POST")
-	router.HandleFunc("/api/v/1.0/run/start/", Chain(ReceiveFile, Method("POST"), Logging())).Methods("POST")
-	
-	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r)
-	})
+	myrouter.HandleFunc("/", serveHome, "GET")
+	myrouter.HandleFunc("/test", serveTest, "GET")
+	myrouter.HandleFunc("/api/v/1.0/app/start/", appStartTime, "POST")
+	myrouter.HandleFunc("/display_form_data", DisplayFormDataHandler, "POST")
+	myrouter.HandleFunc("/parse_json_request", DisplayPersonHandler, "POST")
+	myrouter.HandleFunc("/upload_file", ReceiveFile, "POST")
+	myrouter.HandleFunc("/auth/token/login/", authLogin, "POST")
+	myrouter.HandleFunc("/api/v/1.0/run/start/", ReceiveFile, "POST")
+	myrouter.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+			serveWs(hub, w, r)
+		}, "GET")
 
 	log.Println("Server start")
-	err := http.ListenAndServe(":5211", router)
+	err := http.ListenAndServe(":5211", myrouter.router)
 	if err != nil {
 		log.Fatal("ListenAndServeTLS: ", err)
 	}
