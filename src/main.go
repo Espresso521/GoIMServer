@@ -90,6 +90,7 @@ func serveTest(w http.ResponseWriter, r *http.Request) {
 }
 
 func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(1024*1024) 
 	if err := r.ParseForm(); err != nil {
 			panic(err)
 	}
@@ -102,7 +103,7 @@ func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func appStartTime(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
+	r.ParseMultipartForm(1024*1024) 
 	if r.URL.Path != "/api/v/1.0/app/start/" {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -125,7 +126,7 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 }
 
 func authLogin(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
+	r.ParseMultipartForm(1024*1024) 
 	if r.URL.Path != "/auth/token/login/" {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
