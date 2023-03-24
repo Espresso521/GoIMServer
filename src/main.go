@@ -97,7 +97,9 @@ func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
 	for key, values := range r.Form {
 		log.Printf("Form field %q, Values %q\n", key, values)
 		fmt.Fprintf(w, "Form field %q, Values %q\n", key, values)
- }
+  }
+
+ fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
 
 func appStartTime(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +146,7 @@ func main() {
 	myrouter.HandleFunc("/upload_file", ReceiveFile, "POST")
 	myrouter.HandleFunc("/auth/token/login/", authLogin, "POST")
 	myrouter.HandleFunc("/api/v/1.0/run/start/", ReceiveFile, "POST")
+	myrouter.HandleFunc("/api/v/1.0/run/status/", DisplayFormDataHandler, "POST")
 	myrouter.HandleFunc("/api/v/1.0/run/finish/", ReceiveFile, "POST")
 	myrouter.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 			serveWs(hub, w, r)
