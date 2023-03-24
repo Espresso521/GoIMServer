@@ -96,8 +96,7 @@ func DisplayFormDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	for key, values := range r.Form {
 		log.Printf("Form field %q, Values %q\n", key, values)
-		fmt.Fprintf(w, "Form field %q, Values %q\n", key, values)
-  }
+ }
 
  fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
@@ -109,14 +108,18 @@ func appStartTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for key,value:= range r.Header{
-			log.Printf("%s=>%s\n",key,value)
-	}
+	// for key,value:= range r.Header{
+	// 		log.Printf("%s=>%s\n",key,value)
+	// }
 
-	for k, v := range r.URL.Query() {
-		log.Printf("ParamName %q, Value %q\n", k, v)
-		log.Printf("ParamName %q, Get Value %q\n", k, r.URL.Query().Get(k))
-	}
+	// for k, v := range r.URL.Query() {
+	// 	log.Printf("ParamName %q, Value %q\n", k, v)
+	// 	log.Printf("ParamName %q, Get Value %q\n", k, r.URL.Query().Get(k))
+	// }
+
+	for key, values := range r.Form {
+		log.Printf("Form field %q, Values %q\n", key, values)
+ }
 
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
@@ -127,6 +130,10 @@ func authLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
+
+	for key, values := range r.Form {
+		log.Printf("Form field %q, Values %q\n", key, values)
+ }
 
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
