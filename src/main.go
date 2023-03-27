@@ -198,15 +198,4 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServeTLS: ", err)
 	}
-
-    // Serve static files from the "public" directory
-    // fs := http.FileServer(http.Dir("public"))
-
-    // // Handle requests to the root URL ("/") by serving the "index.html" file
-    // http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-    //     http.ServeFile(w, r, "public/index.html")
-    // })
-	
-		// 	// Start the server on port 8080
-		// 	log.Fatal(http.ListenAndServe(":5211", fs))
 }
