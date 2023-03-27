@@ -140,8 +140,11 @@ func authLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleHello(w http.ResponseWriter, r *http.Request) {
+
+	v := fmt.Sprintf("This message come from GO backend server. Server Time Now is : %s", time.Now())
+
 	res, err := json.Marshal(map[string]string{
-			"message": "hello from the server",
+			"message": v,
 	})
 	if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
