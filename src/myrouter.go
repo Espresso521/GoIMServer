@@ -49,7 +49,7 @@ func Logging() Middleware {
 			return func(w http.ResponseWriter, r *http.Request) {
 
 					// 中间件的处理逻辑
-					log.Println("Http Start ===>>> " + r.URL.Path) 
+					log.Println("Http Start ===>>> " + r.Method + " : " + r.URL.Path) 
 
 					// 调用下一个中间件或者最终的handler处理程序
 					f(w, r)

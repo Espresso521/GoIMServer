@@ -139,6 +139,22 @@ func authLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
 }
 
+func handleHello(w http.ResponseWriter, r *http.Request) {
+	res, err := json.Marshal(map[string]string{
+			"message": "hello from the server",
+	})
+	if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
+}
+
+func handleSPA(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w,r,"public/index.html")
+}
+
 func main() {
 	hub := newHub()
 	go hub.run()
@@ -146,6 +162,20 @@ func main() {
 	// regist router
 	myrouter := MyRouter{mux.NewRouter()}
 
+	// Serve the static files for the Svelte app
+	myrouter.HandleFunc("/global.css", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w,r,"public/global.css")
+	}, "GET")
+	myrouter.HandleFunc("/build/bundle.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w,r,"public/build/bundle.js")
+	}, "GET")
+	myrouter.HandleFunc("/build/bundle.css", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w,r,"public/build/bundle.css")
+	}, "GET")
+	myrouter.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w,r,"public/favicon.png")
+	}, "GET")
+	
 	myrouter.HandleFunc("/", serveHome, "GET")
 	myrouter.HandleFunc("/test", serveTest, "GET")
 	myrouter.HandleFunc("/api/v/1.0/app/start/", appStartTime, "POST")
@@ -160,9 +190,23 @@ func main() {
 			serveWs(hub, w, r)
 		}, "GET")
 
+	myrouter.HandleFunc("/hello.json", handleHello, "GET")
+	myrouter.HandleFunc("/svelte", handleSPA, "GET")
+
 	log.Println("Server start")
 	err := http.ListenAndServe(":5211", myrouter.router)
 	if err != nil {
 		log.Fatal("ListenAndServeTLS: ", err)
 	}
+
+    // Serve static files from the "public" directory
+    // fs := http.FileServer(http.Dir("public"))
+
+    // // Handle requests to the root URL ("/") by serving the "index.html" file
+    // http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    //     http.ServeFile(w, r, "public/index.html")
+    // })
+	
+		// 	// Start the server on port 8080
+		// 	log.Fatal(http.ListenAndServe(":5211", fs))
 }
