@@ -55,7 +55,7 @@ func (r *V10Router) addV10Router() {
   })
 }
 
-func ReceiveFile(w http.ResponseWriter, r *http.Request) string {
+func ReceiveFile(w http.ResponseWriter, r *http.Request) map[string]any {
 	file, header, err := r.FormFile("image")
 	if err != nil {
 			panic(err)
@@ -70,18 +70,29 @@ func ReceiveFile(w http.ResponseWriter, r *http.Request) string {
 	// create a new file in the local file system
 	f, err := os.OpenFile("./uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return fmt.Sprintf("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'error':'%s'}", err.Error())
+		return gin.H{
+			"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
+			"time":time.Now(),
+			"error":fmt.Sprintf("File uploaded failed: Error is %v ", err.Error()),
+		}
 	}
 	defer f.Close()
 
 	// copy the uploaded file data to the new file
 	_, err = io.Copy(f, file)
 	if err != nil {
-			return fmt.Sprintf("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'error':'%s'}", err.Error())
+		return gin.H{
+			"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
+			"time":time.Now(),
+			"error":fmt.Sprintf("File uploaded failed: Error is %v ", err.Error()),
+		}
 	}
 
 	fStat, _ := f.Stat()
 
-	// return a success message to the client
-	return fmt.Sprintf("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s', 'extra':'File uploaded successfully: file name is %v, file size is %v bytes'}", time.Now(), f.Name(), fStat.Size())
+	return gin.H{
+		"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
+		"time":time.Now(),
+		"extra":fmt.Sprintf("File uploaded successfully: file name is %v, file size is %v bytes", f.Name(), fStat.Size()),
+	}
 }

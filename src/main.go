@@ -44,12 +44,14 @@ func addDefaultRouter(defaultRouter *gin.Engine, hub *Hub) {
 		for key, values := range c.Request.PostForm {
 			log.Printf("Form field %q, Values %q\n", key, values)
 	  }
-	  c.JSON(http.StatusOK, getAnswer())
+	  c.JSON(http.StatusOK, gin.H{
+			"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
+			"time":time.Now(),
+		})
 	})
 }
 
 func handleHello(w http.ResponseWriter, r *http.Request) {
-
 	v := fmt.Sprintf("This message come from GO backend server. Server Time Now is : %s", time.Now())
 
 	res, err := json.Marshal(map[string]string{
