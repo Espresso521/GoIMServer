@@ -96,3 +96,10 @@ func ReceiveFile(w http.ResponseWriter, r *http.Request) map[string]any {
 		"extra":fmt.Sprintf("File uploaded successfully: file name is %v, file size is %v bytes", f.Name(), fStat.Size()),
 	}
 }
+
+func getAnswer() map[string]any {
+	return gin.H{
+		"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
+		"time":time.Now(),
+	}
+}

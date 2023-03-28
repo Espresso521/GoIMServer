@@ -64,8 +64,3 @@ func handleHello(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
 }
-
-func getAnswer() string {
-	ret := fmt.Sprintf("{'auth_token':'a48396e4f5bec65ddd415cb802cd37be7a5784cae', 'time':'%s'}", time.Now())
-	return ret
-}
