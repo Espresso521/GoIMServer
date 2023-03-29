@@ -29,11 +29,7 @@ func (r *V10Router) addV10Router() {
 	})
 
 	r.router.POST("/app/start/", func(c *gin.Context) {
-		c.Request.ParseMultipartForm(1024*1024)
-		for key, values := range c.Request.PostForm {
-			log.Printf("Form field %q, Values %q\n", key, values)
-	  }
-	  c.JSON(http.StatusOK, getAnswer())
+	  c.JSON(http.StatusOK, getAnswer(c))
   })
 
 	r.router.POST("/run/start/", func(c *gin.Context) {
@@ -47,11 +43,11 @@ func (r *V10Router) addV10Router() {
   })
 
 	r.router.POST("/run/status/", func(c *gin.Context) {
-		c.Request.ParseMultipartForm(1024*1024)
-		for key, values := range c.Request.PostForm {
-			log.Printf("Form field %q, Values %q\n", key, values)
-	  }
-	  c.JSON(http.StatusOK, getAnswer())
+	  c.JSON(http.StatusOK, getAnswer(c))
+  })
+
+	r.router.POST("/error/", func(c *gin.Context) {
+	  c.JSON(http.StatusOK, getAnswer(c))
   })
 }
 
@@ -97,7 +93,12 @@ func ReceiveFile(w http.ResponseWriter, r *http.Request) map[string]any {
 	}
 }
 
-func getAnswer() map[string]any {
+func getAnswer(c *gin.Context) map[string]any {
+	c.Request.ParseMultipartForm(1024*1024)
+	for key, values := range c.Request.PostForm {
+		log.Printf("Form field %q, Values %q\n", key, values)
+	}
+
 	return gin.H{
 		"auto_token":"a48396e4f5bec65ddd415cb802cd37be7a5784cae",
 		"time":time.Now(),
