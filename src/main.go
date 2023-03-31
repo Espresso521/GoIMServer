@@ -25,6 +25,9 @@ func main() {
   v10Router := V10Router{defaultRouter.Group("/api/v/1.0")}
 	v10Router.addV10Router()
 
+	v20Router := v20router{defaultRouter.Group("/v2")}
+	v20Router.addV20Router()
+
   // Start the server
 	log.Println("Server start")
   defaultRouter.Run(":5211")
