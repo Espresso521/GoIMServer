@@ -37,7 +37,7 @@
 
     .title {
       text-align: center;
-      font-size: 21px;
+      font-size: 48px;
       flex: 1;
       position: absolute;
       left: 0%;
@@ -48,7 +48,7 @@
       position: absolute;
       text-align: center;
       right: 0%;
-      font-size: 15px;
+      font-size: 40px;
       margin-right: 10px;
       color: red;
       float: right;
@@ -58,8 +58,8 @@
     .titlebar {
       background-color: #ffffff;
       color: #aaa9a9;
-      height: 50px;
-      line-height: 50px;
+      height: 96px;
+      line-height: 95px;
       position: fixed;
       top: 0;
       left: 0;
@@ -100,14 +100,16 @@
 </head>
 
 <script>
-
+  function callAndroidFunction () {
+    Pay.gotoSetting()
+  }
 </script>
 
 <body>
   <div style="display: block;">
     <div class="titlebar">
       <div class="title">郵貯銀行口座払い設定</div>
-      <div class="back-button">設定へ</div>
+      <div class="back-button" onClick="callAndroidFunction()">設定へ</div>
       <div class="horizontal-line"></div>
 
     </div>
@@ -117,9 +119,9 @@
     </div>
 
     <div>
-      <p style="font-size: 20px; text-align: center;"><b>郵貯銀行口座払いの設定に失敗しました</b></p>
+      <p style="font-size: 50px; text-align: center;"><b>郵貯銀行口座払いの設定に失敗しました</b></p>
 
-      <p style="font-size: 21px; text-align: center;">お支払い元の設定に戻って再設定してください</p>
+      <p style="font-size: 51px; color:#aaa9a9; text-align: center;">お支払い元の設定に戻って再設定してください</p>
     </div>
   </div>
 </body>
