@@ -49,6 +49,13 @@ func (r *V10Router) addV10Router() {
 	r.router.POST("/error/", func(c *gin.Context) {
 	  c.JSON(http.StatusOK, getAnswer(c))
   })
+
+	r.router.DELETE("/run", func(c *gin.Context) {
+		// 获取 URL 参数
+		runID := c.Query("run_id")
+		log.Printf("run_id: %s\n", runID)
+		c.JSON(http.StatusOK, getAnswer(c))
+	})
 }
 
 func ReceiveFile(w http.ResponseWriter, r *http.Request) map[string]any {
