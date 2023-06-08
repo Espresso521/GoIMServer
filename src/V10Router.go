@@ -51,8 +51,15 @@ func (r *V10Router) addV10Router() {
   })
 
 	r.router.DELETE("/run", func(c *gin.Context) {
-		// 获取 URL 参数
+		// get query param 
 		runID := c.Query("run_id")
+		log.Printf("run_id: %s\n", runID)
+		c.JSON(http.StatusOK, getAnswer(c))
+	})
+
+	r.router.DELETE("/run/:run_id", func(c *gin.Context) {
+		// get path param
+		runID := c.Param("run_id")
 		log.Printf("run_id: %s\n", runID)
 		c.JSON(http.StatusOK, getAnswer(c))
 	})
